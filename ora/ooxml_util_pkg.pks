@@ -14,6 +14,7 @@ as
   MBR     25.01.2011  Created
   MBR     11.07.2011  Added Powerpoint-specific features
   JMW     31.03.2017  Added a 'state' attribute to t_xlsx_sheet_properties
+  JMW     06.11.2025  Added get_xlsx_cell_range function
  
   */
   
@@ -110,6 +111,12 @@ as
 
   -- get column reference from column number
   function get_xlsx_column_ref (p_column_number in number) return varchar2;
+  
+  -- get an array of cell addresses using a range of rows and a range of columns
+  function get_xlsx_cell_range( p_from_row_number in pls_integer,
+                              p_to_row_number in pls_integer,
+                              p_from_column_number in pls_integer,
+                              p_to_column_number in pls_integer ) return t_str_array;
 
   -- get cell value from XLSX file
   function get_xlsx_cell_value (p_xlsx in blob,
