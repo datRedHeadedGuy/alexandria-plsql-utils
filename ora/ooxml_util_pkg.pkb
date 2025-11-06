@@ -80,7 +80,7 @@ begin
     
     l_xml := get_xml( p_xlsx, 'xl/workbook.xml' );
     
-    select xml.r_id, xml.sheetid, xml.name
+    select xml.r_id, xml.sheetid, xml.name, xml.state
         bulk collect into l_returnvalue
       from xmltable( xmlnamespaces( default 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
                          'http://schemas.openxmlformats.org/officeDocument/2006/relationships' AS "r" ),
@@ -377,6 +377,44 @@ begin
     return l_returnvalue;
 
 end get_xlsx_column_ref;
+
+
+function get_xlsx_cell_range( p_from_row_number in pls_integer,
+                              p_to_row_number in pls_integer,
+                              p_from_column_number in pls_integer,
+                              p_to_column_number in pls_integer ) return t_str_array
+as
+    l_range_index      pls_integer;
+    l_rows_index       pls_integer;
+    l_columns_index    pls_integer;
+    l_returnvalue      t_str_array := t_str_array();
+begin
+
+    /*
+
+    Purpose:      get an array of cell addresses using a range of rows and a range of columns
+
+    Remarks:      
+
+    Who     Date        Description
+    ------  ----------  --------------------------------
+    JMW     06.11.2025  Created
+
+    */
+
+    l_returnvalue.extend( ( p_to_row_number - p_from_row_number + 1 ) * ( p_to_column_number - p_from_column_number + 1 ) );
+    
+    l_range_index := 1;
+    for l_rows_index in p_from_row_number..p_to_row_number loop
+        for l_columns_index in p_from_column_number..p_to_column_number loop
+            l_returnvalue( l_range_index ) := get_xlsx_column_ref( l_columns_index ) || l_rows_index;
+            l_range_index := l_range_index + 1;
+        end loop;
+    end loop;
+
+    return l_returnvalue;
+
+end get_xlsx_cell_range;
 
 
 function get_worksheet_file_name (p_xlsx in blob,
