@@ -10,6 +10,9 @@ as
   Who     Date        Description
   ------  ----------  -------------------------------------
   FDL     03.05.2007  Created
+  JMW     07.11.2025  Added get_unescaped_string()
+                       so that special characters
+                       in the return value are not escaped
 
   */
   
@@ -83,5 +86,6 @@ as
 
 end xml_util_pkg;
 /
+
 
 
