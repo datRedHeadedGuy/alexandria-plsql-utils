@@ -159,6 +159,76 @@ begin
 end get_string;
 
 
+function get_unescaped_string( p_escaped in varchar2 ) return varchar2
+as
+  l_returnvalue  string_util_pkg.t_max_pl_varchar2;
+  l_pos          pls_integer;
+  l_end          pls_integer;
+  l_entity       varchar2(50);
+  l_code         pls_integer;
+  l_char         varchar2(10);
+begin
+  
+  /*
+ 
+  Purpose:      get unescaped string
+ 
+  Remarks:      
+ 
+  Who     Date        Description
+  ------  ----------  --------------------------------
+  JMW     07.11.2025  Created
+ 
+  */
+  
+  l_returnvalue := p_escaped;
+  
+  -- Replace standard XML entities
+  l_returnvalue := replace(l_returnvalue, '&amp;', '&');
+  l_returnvalue := replace(l_returnvalue, '&lt;', '<');
+  l_returnvalue := replace(l_returnvalue, '&gt;', '>');
+  l_returnvalue := replace(l_returnvalue, '&quot;', '"');
+  l_returnvalue := replace(l_returnvalue, '&apos;', '''');
+  
+  -- Handle numeric character references (decimal and hex)
+  l_pos := instr(l_returnvalue, '&#');
+  while l_pos > 0 loop
+    l_end := instr(l_returnvalue, ';', l_pos);
+    exit when l_end = 0;
+    
+    l_entity := substr(l_returnvalue, l_pos + 2, l_end - l_pos - 2);
+    
+    begin
+      if lower(substr(l_entity, 1, 1)) = 'x' then
+        -- Hexadecimal reference
+        l_code := to_number(substr(l_entity, 2), 'xxxx');
+      else
+        -- Decimal reference
+        l_code := to_number(l_entity);
+      end if;
+      
+      -- Convert code point to character safely
+      if l_code between 0 and 255 then
+        l_char := chr(l_code);
+      else
+        -- Use Unicode escape for high code points
+        l_char := unistr('\'+lpad(to_char(l_code, 'xxxx'),4,'0')); --'
+      end if;
+      
+      -- Replace the entity in the string
+      l_returnvalue := substr(l_returnvalue, 1, l_pos - 1) || l_char || substr(l_returnvalue, l_end + 1);
+    exception
+      when others then
+      -- If numeric conversion fails, leave entity as-is
+      l_end := l_pos;
+    end;
+    l_pos := instr(l_returnvalue, '&#', l_pos + length(l_char));
+  end loop;
+  
+  return l_returnvalue;
+end get_unescaped_string;
+
+
 function tag_str (p_str in varchar2,
                   p_tag_name in varchar2) return varchar2
 as
@@ -303,14 +373,14 @@ begin
   Who     Date        Description
   ------  ----------  -------------------------------------
   MBR     07.12.2010  Created
-  JMW     12.04.2018  Changed the use of XMLType.extract(xpath).getStringVal()
-                       to EXTRACTVALUE(XMLType, xpath) so that special characters
-                       are not escaped
+  JMW     07.11.2025  Added get_unescaped_string()
+                       so that special characters
+                       in the return value are not escaped
   
   */
   
   begin
-    select extractvalue( xmltype(p_tag), '//@' || p_attr_name )
+    select xmltype(p_tag).extract('//@' || p_attr_name).getstringval()
     into l_returnvalue
     from dual;
   exception
@@ -318,7 +388,7 @@ begin
       l_returnvalue := null;
   end;
   
-  l_returnvalue := nvl(l_returnvalue, p_default_value);
+  l_returnvalue := nvl(get_unescaped_string(l_returnvalue), p_default_value);
   
   return l_returnvalue;
 
@@ -342,16 +412,14 @@ begin
   Who     Date        Description
   ------  ----------  --------------------------------
   MBR     27.01.2011  Created
-  JMW     12.04.2018  Changed the use of XMLType.extract(xpath).getStringVal()
-                       to EXTRACTVALUE(XMLType, xpath) so that special characters
-                       are not escaped
+  JMW     07.11.2025  Added get_unescaped_string()
+                       so that special characters
+                       in the return value are not escaped
  
   */
 
   begin 
-    select extractvalue( p_xml, p_xpath, p_namespace )
-    into l_returnvalue
-    from dual;
+    l_returnvalue := get_unescaped_string(p_xml.extract(p_xpath, p_namespace).getstringval());
   exception
     when others then
       l_returnvalue := p_default_value;
@@ -380,21 +448,14 @@ begin
   Who     Date        Description
   ------  ----------  --------------------------------
   MBR     27.01.2011  Created
-  JMW     12.04.2018  Changed the use of XMLType.extract(xpath).getStringVal()
-                       to EXTRACTVALUE(XMLType, xpath) so that special characters
-                       are not escaped
  
   */
  
   begin 
     if p_date_format is not null then
-      select to_date( extractvalue( p_xml, p_xpath, p_namespace ), p_date_format )
-      into l_returnvalue
-      from dual;
+      l_returnvalue := to_date(p_xml.extract(p_xpath, p_namespace).getstringval(), p_date_format);
     else
-      select to_date( substr( extractvalue( p_xml, p_xpath, p_namespace ), 1, 19 ), 'YYYY-MM-DD"T"hh24:mi:ss' )
-      into l_returnvalue
-      from dual;
+      l_returnvalue := to_date(substr(p_xml.extract(p_xpath, p_namespace).getstringval(), 1, 19), 'YYYY-MM-DD"T"hh24:mi:ss');
     end if;
   exception
     when others then
@@ -423,16 +484,11 @@ begin
   Who     Date        Description
   ------  ----------  --------------------------------
   MBR     27.01.2011  Created
-  JMW     12.04.2018  Changed the use of XMLType.extract(xpath).getStringVal()
-                       to EXTRACTVALUE(XMLType, xpath) so that special characters
-                       are not escaped
  
   */
  
   begin 
-    select to_number( extractvalue( p_xml, p_xpath, p_namespace ) )
-    into l_returnvalue
-    from dual;
+    l_returnvalue := to_number(p_xml.extract(p_xpath, p_namespace).getstringval());
   exception
     when others then
       l_returnvalue := p_default_value;
