@@ -889,4 +889,3 @@ end get_pptx_plaintext;
 
 end ooxml_util_pkg;
 /
-
