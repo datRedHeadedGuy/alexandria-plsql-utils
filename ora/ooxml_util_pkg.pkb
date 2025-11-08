@@ -80,7 +80,7 @@ begin
     
     l_xml := get_xml( p_xlsx, 'xl/workbook.xml' );
     
-    select xml.r_id, xml.sheetid, xml.name, xml.state
+    select xml.r_id, xml.sheetid, xml.name
         bulk collect into l_returnvalue
       from xmltable( xmlnamespaces( default 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
                          'http://schemas.openxmlformats.org/officeDocument/2006/relationships' AS "r" ),
@@ -927,3 +927,4 @@ end get_pptx_plaintext;
 
 end ooxml_util_pkg;
 /
+
