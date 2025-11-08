@@ -10,6 +10,9 @@ as
   Who     Date        Description
   ------  ----------  --------------------------------
   MBR     25.01.2011  Created
+  MBR     11.07.2011  Added Powerpoint-specific features
+  JMW     31.03.2017  Added a 'state' attribute to t_xlsx_sheet_properties
+  JMW     06.11.2025  Added get_xlsx_cell_range function
  
   */
   
@@ -927,4 +930,3 @@ end get_pptx_plaintext;
 
 end ooxml_util_pkg;
 /
-
