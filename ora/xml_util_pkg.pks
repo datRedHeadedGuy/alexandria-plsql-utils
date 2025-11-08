@@ -37,12 +37,15 @@ as
                        p_name in varchar2,
                        p_regional_settings in t_regional_settings := null,
                        p_raise_error_if_parse_error in boolean := false) return number;
-
+  
   -- return a string from DOM node
   function get_string (p_node in dbms_xmldom.domnode,
                        p_name in varchar2,
                        p_trim_str in boolean := true) return varchar2;
-                       
+  
+  -- get unescaped string
+  function get_unescaped_string( p_escaped in varchar2 ) return varchar2;
+  
   -- build tagged string
   function tag_str (p_str in varchar2,
                     p_tag_name in varchar2) return varchar2;
@@ -80,4 +83,5 @@ as
 
 end xml_util_pkg;
 /
+
 
