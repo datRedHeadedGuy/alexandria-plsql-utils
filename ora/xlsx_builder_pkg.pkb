@@ -669,9 +669,12 @@ as
       workbook.sheets( t_sheet ).rows( p_row )( p_col ).value := p_value;
       workbook.sheets( t_sheet ).rows( p_row )( p_col ).style := null;
       workbook.sheets( t_sheet ).rows( p_row )( p_col ).style := get_XfId( t_sheet, p_col, p_row, p_numFmtId, p_fontId, p_fillId, p_borderId, p_alignment );
-    elsif workbook.sheets( t_sheet ).rows( p_row ).exists( p_col ) 
+    elsif workbook.sheets( t_sheet ).rows.exists( p_row )
     then
+      if workbook.sheets( t_sheet ).rows( p_row ).exists( p_col )
+      then
         workbook.sheets( t_sheet ).rows( p_row ).delete( p_col );
+      end if;
     end if;
   end;
 --
@@ -728,9 +731,12 @@ as
         t_alignment.wrapText := true;
       end if;
         workbook.sheets( t_sheet ).rows( p_row )( p_col ).style := 't="s" ' || get_XfId( t_sheet, p_col, p_row, p_numFmtId, p_fontId, p_fillId, p_borderId, t_alignment );
-    elsif workbook.sheets( t_sheet ).rows( p_row ).exists( p_col )
+    elsif workbook.sheets( t_sheet ).rows.exists( p_row )
     then
-      workbook.sheets( t_sheet ).rows( p_row ).delete( p_col );
+      if workbook.sheets( t_sheet ).rows( p_row ).exists( p_col )
+      then
+        workbook.sheets( t_sheet ).rows( p_row ).delete( p_col );
+      end if;
     end if;
   end;
 --
@@ -1984,4 +1990,3 @@ style="position:absolute;margin-left:35.25pt;margin-top:3pt;z-index:' || to_char
   end;
 end xlsx_builder_pkg;
 /
-
